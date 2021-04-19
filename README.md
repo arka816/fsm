@@ -4,7 +4,7 @@ We present minimization algorithms for reducing Moore Machines, Mealy Machines a
 The project also aims to produce verilog code for said minimal automata.
 
 ## Execution and test files
-### for finite state machines without output
+### For deterministic finite automata
 The file can be executed in the terminal as:
 **python file_name.py test_filename.fsm**
 A sample finite state machine file namely **demo.fsm** has been provided and would be parsed as default if **test_filename.fsm** is not provided in the terminal.
@@ -27,3 +27,25 @@ It is advised to provide the complete address of the task file in the terminal d
   - the next 8 lines outline the state transition table where the rows represent the states and the columns represent the letter of the alphabet
   - the next line contains the initial state, state 0 in our case
   - the last line contains a list of acceptable states, only state 2 in our case
+
+### For Moore Machines
+The file execution method is same as above.
+#### Format of input in mealy.fsm
+
+    6 2
+    4 3
+    5 3
+    4 1
+    5 1
+    2 5
+    1 2
+    0 1
+    0 0
+    0 1
+    0 0
+    0 1
+    0 0
+    
+  - the first line signifies the number of states and the size of the alphabet: 6 and 2 respectively
+  - the next 6 lines outline the state transition table similar as above
+  - the next 6 lines outline the output associated with each transition as described in the state transition table above
