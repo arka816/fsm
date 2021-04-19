@@ -15,24 +15,9 @@
  * verilog code for the reduced automata
 """
 
-from fsm_parser import parseFSM
+from fsm_parser import parseDFA
 
-states, alphabets, transition_table, initial_state, final_states = parseFSM()
-"""states = 8
-alphabets = 2
-transition_table = {
-        0:[1, 5],
-        1:[6, 2],
-        2:[0, 2],
-        3:[2, 6],
-        4:[7, 5],
-        5:[2, 6],
-        6:[6, 4],
-        7:[6, 2]
-    }
-
-initial_state = 0
-final_states = {2}"""
+states, alphabets, transition_table, initial_state, final_states = parseDFA()
 
 ## REMOVE UNREACHABLE STATES
 Q = set(range(states))
