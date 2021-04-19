@@ -1,10 +1,10 @@
 # FINITE STATE MACHINE MINIMIZATION
 
-We present minimization algorithms for reducing Moore Machines, Mealy Machines and finite automata using equivalence classes.
+We present minimization algorithms for reducing Moore Machines, Mealy Machines and deterministic finite automata using equivalence classes.
 The project also aims to produce verilog code for said minimal automata.
 
 ## Execution and test files
-### for finite state machine without output
+### for finite state machines without output
 The file can be executed in the terminal as:
 **python file_name.py test_filename.fsm**
 A sample finite state machine file namely **demo.fsm** has been provided and would be parsed as default if **test_filename.fsm** is not provided in the terminal.
