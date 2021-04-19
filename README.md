@@ -46,7 +46,6 @@ The file execution method is same as above.
     0 1
     0 0
     
-    - the first line signifies the number of states and the size of the alphabet: 6 and 2 respectively
-    - the next 6 lines outline the state transition table similar as above
-    - the next 6 lines outline the output associated with each transition as described in the state transition table above
-
+  - the first line signifies the number of states and the size of the alphabet: 6 and 2 respectively
+  - the next 6 lines outline the state transition table similar as above
+  - the next 6 lines outline the output associated with each transition as described in the state transition table above
