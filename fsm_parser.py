@@ -29,7 +29,7 @@ def parseMealy(filename = "mealy.fsm"):
     return states, alphabets, state_transition_table
 
 
-def parseIncompleteMealy(filename = "incomplete_mealy.fsm"):
+def parseIncompleteMealy(filename = "C:\\Users\\arkap\\OneDrive\\Documents\\summer 21\\fsm-minimization\\fsm\\incomplete_mealy.fsm"):
     f = open(filename, 'r')
     states, alphabets = [int(item) for item in f.readline().strip().split(" ")]
     transition_table = dict()
