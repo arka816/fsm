@@ -49,3 +49,26 @@ The file execution method is same as above.
   - the first line signifies the number of states and the size of the alphabet: 6 and 2 respectively
   - the next 6 lines outline the state transition table similar as above
   - the next 6 lines outline the output associated with each transition as described in the state transition table above
+
+### For incompletely specified Moore machines
+The file execution method is same as above
+#### Format of input as in incomplete_mealy.fsm
+
+    6 2
+    4 1
+    5 0
+    4 2
+    5 3
+    2 2
+    3 1
+    0 0
+    0 0
+    X 0
+    1 0
+    1 0
+    X 0
+
+  - the first line signifies the number of states and the size of the alphabet: 6 and 2 respectively
+  - the next 6 lines outline the state transition table similar as above
+  - the next 6 lines outline the output associated with each transition as described in the state transition table above
+  - X marks unspecified values for both states and outputs
