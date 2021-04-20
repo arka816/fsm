@@ -14,6 +14,8 @@ import sys
 sys.path.insert(1, '../')
 from fsm_parser import parseIncompleteMealy
 
+INT_MAX = float('inf')
+
 states, alphabets, state_transition_table = parseIncompleteMealy()
 
 def propagateDependencies(p, q, mergerTable, propagated):
@@ -80,19 +82,19 @@ def generateCompatibilityGraph(mergerTable):
     nodes = list(nodes)
     l = len(nodes)
     
-    adjMatrix = [[False for j in range(l)] for i in range(l)]
+    compatibilityMat = [[False for j in range(l)] for i in range(l)]
     for i in range(states - 1):
         for j in range(i + 1):
             if type(mergerTable[i][j]) == list:
                 x = nodes.index((i+1, j))
                 for d in mergerTable[i][j]:
                     y = nodes.index(d)
-                    adjMatrix[x][y] = True
+                    compatibilityMat[x][y] = True
                     
-    return nodes, adjMatrix
+    return nodes, compatibilityMat
 
-def BFS(adjMatrix, s):
-    l = len(adjMatrix)
+def BFS(compatibilityMat, s):
+    l = len(compatibilityMat)
     visited = [False] * (l)
     queue = []
     queue.append(s)
@@ -100,21 +102,21 @@ def BFS(adjMatrix, s):
     while queue:
         s = queue.pop(0)
         for i in range(l):
-            if adjMatrix[s][i] or adjMatrix[i][s]:
+            if compatibilityMat[s][i] or compatibilityMat[i][s]:
                 if not visited[i]:
                     queue.append(i)
                     visited[i] = True           
     return visited
 
-def findDisjointSubgraphs(adjMatrix):
-    l = len(adjMatrix)
+def findDisjointComponents(compatibilityMat):
+    l = len(compatibilityMat)
     colors = [0] * l
     color = 0
     groups = dict()
     for i in range(l):
         if colors[i] == 0:
             color += 1
-            v = BFS(adjMatrix, i)
+            v = BFS(compatibilityMat, i)
             for j in range(l):
                 if v[j]:
                     colors[j] = color
@@ -123,9 +125,51 @@ def findDisjointSubgraphs(adjMatrix):
                     else:
                         groups[color] = [j]
     return groups
+
+def BFSdirected(compatibilityMat, s):
+    l = len(compatibilityMat)
+    visited = [False] * (l)
+    queue = []
+    queue.append(s)
+    visited[s] = True
+    while queue:
+        s = queue.pop(0)
+        for i in range(l):
+            if compatibilityMat[s][i]:
+                if not visited[i]:
+                    queue.append(i)
+                    visited[i] = True           
+    return [i for i in range(l) if visited[i]]
     
     
 mergerTable = generateMergerTable()
-nodes, adjMatrix = generateCompatibilityGraph(mergerTable)
-components = findDisjointSubgraphs(adjMatrix)
+nodes, compatibilityMat = generateCompatibilityGraph(mergerTable)
+components = findDisjointComponents(compatibilityMat)
+componentSubgraphs = []
 
+for key, component in components.items():
+    subgraphs = set()
+    for s in component:
+        subgraphs.add(tuple(BFSdirected(compatibilityMat, s)))
+    componentSubgraphs.append(subgraphs)
+    
+minimalSubgraph = []
+minimalSubgraphLength = INT_MAX
+    
+def combineSubgraphs(c, componentSubgraphs, curr):
+    global nodes, minimalSubgraph, minimalSubgraphLength
+    if c >= len(componentSubgraphs):
+        s=  set()
+        for node in curr:
+            s.add(nodes[node][0])
+            s.add(nodes[node][1])
+        if len(s) == states:
+            if len(curr) < minimalSubgraphLength:
+                minimalSubgraph = curr
+                minimalSubgraphLength = len(curr)
+        return
+    combineSubgraphs(c+1, componentSubgraphs,  curr)
+    for subgraph in componentSubgraphs[c]:
+        combineSubgraphs(c+1, componentSubgraphs,  curr + list(subgraph))
+    
+combineSubgraphs(0, componentSubgraphs, [])
