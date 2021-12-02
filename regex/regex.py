@@ -38,6 +38,10 @@ class RegExp:
         # Step 2.a : first layer based on union of sub-regexes
         # Step 2.b : second layer based on concatenation of sub-regexes
         # Step 2.c : third layer based on kleine star
+
+        if (UNION_OP, 'union') in subexps:
+            node = ASTNode('union')
+            
         pass
             
     def compile(self):
