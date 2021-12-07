@@ -1,4 +1,5 @@
 from treelib import Tree
+from automata import ENFA, merge_union, merge_concat, merge_star
 
 # regex compiler
 # follows the original regular expression syntax
@@ -17,7 +18,7 @@ PARENTHESES_CLOSING_OP  = ')'
 
 class ASTNode:
     def __init__(self, type, val=None) -> None:
-        # type can be 1 of 5 values
+        # type can be 1 of 4 values
         # 1. concat : concatenation operator
         # 2. union  : union operator
         # 3. star   : kleine star operator
@@ -32,7 +33,13 @@ class ASTNode:
 
     def add_children(self, children) ->None:
         if type(children) == list:
-            self.children += children
+            if self.type == 'star':
+                if len(children) > 1:
+                    raise Exception('kleine star can have only one child')
+                else:
+                    self.children.append(children[0])
+            else:       
+                self.children += children
         else:
             self.children.append(children)
 
@@ -41,7 +48,7 @@ class RegExp:
     def __init__(self, exp) -> None:
         self.exp = exp
 
-    def parse(self, subexps):
+    def __parse(self, subexps):
         # Step 2.a : first layer based on union of sub-regexes
         # Step 2.b : second layer based on concatenation of sub-regexes
         # Step 2.c : third layer based on kleine star
@@ -52,16 +59,16 @@ class RegExp:
             if exp[1] == 'literal':
                 return ASTNode('literal', exp[0]) 
             elif exp[1] == 'nest':
-                return self.parse(exp[0])
+                return self.__parse(exp[0])
 
         # check if union operator is present
         if (UNION_OP, 'union') in subexps:
             node = ASTNode('union')
             union_indices = [index for index in range(len(subexps)) if subexps[index][1] == 'union'] 
             
-            children = [self.parse(subexps[: union_indices[0]])]
-            children += [self.parse(subexps[union_indices[i] + 1 : union_indices[i+1]]) for i in range(len(union_indices)-1)]
-            children += [self.parse(subexps[union_indices[-1] + 1 :])]
+            children = [self.__parse(subexps[: union_indices[0]])]
+            children += [self.__parse(subexps[union_indices[i] + 1 : union_indices[i+1]]) for i in range(len(union_indices)-1)]
+            children += [self.__parse(subexps[union_indices[-1] + 1 :])]
             node.add_children(children)
             return node
 
@@ -80,11 +87,11 @@ class RegExp:
             while i < len(subexps):
                 if i+1 in star_indices:
                     node = ASTNode('star')
-                    node.add_children(self.parse([subexps[i]]))
+                    node.add_children(self.__parse([subexps[i]]))
                     children.append(node)
                     i += 1
                 else:
-                    children.append(self.parse([subexps[i]]))
+                    children.append(self.__parse([subexps[i]]))
                 i += 1
             node = ASTNode('concat')
             node.add_children(children)
@@ -94,13 +101,13 @@ class RegExp:
             if len(star_indices) == 1:
                 if star_indices[0] == 1:
                     node = ASTNode('star')
-                    node.add_children(self.parse([subexps[0]]))
+                    node.add_children(self.__parse([subexps[0]]))
                     return node
                 else:
                     raise Exception('stray kleine star found')
             elif len(star_indices) == 0:
                 if len(subexps) == 1:
-                    return self.parse([subexps[0]])
+                    return self.__parse([subexps[0]])
             else:
                 raise Exception('stray kleine star found')
 
@@ -108,10 +115,13 @@ class RegExp:
         # Step 1: split into subexpressions recursively
         self.subexps = self.__compile_rec(self.exp)
 
-        # Step 2: bundle subexpressions into an AST
-        self.root = self.parse(self.subexps)
+        # Step 2: bundle subexpressions into an AST (abstract syntax tree)
+        self.root = self.__parse(self.subexps)
 
-        return self.subexps, self.root
+        # Step 3: convert AST to ε-NFA
+        self.convert()
+
+        return self.subexps, self.root, self.final_nfa
 
     def __compile_rec(self, exp):
         i, length = 0, len(exp)
@@ -197,10 +207,37 @@ class RegExp:
                 stack.append((child, obj))
 
         tree.show()
+        tree.save2file('ast.txt')
 
+    def convert(self):
+        # convert ast to e-nfa
+        self.final_nfa = self.__convert_rec(self.root)
+        self.final_nfa.simplify_states()
+        # self.final_nfa.draw_automata()
+
+    def __convert_rec(self, node):
+        if node.type == 'literal':
+            initial_state = str(id(node)) + 'i'
+            accepting_state = str(id(node)) + 'a'
+            transitions = [(initial_state, accepting_state, node.val)]
+            nfa = ENFA(
+                set([initial_state, accepting_state]), 
+                initial_state, 
+                accepting_state,
+                transitions
+            )
+            return nfa
+        
+        if node.type == 'union':
+            return merge_union(id(node), [self.__convert_rec(child) for child in node.children])
+        if node.type == 'concat':
+            return merge_concat(id(node), [self.__convert_rec(child) for child in node.children])
+        if node.type == 'star':
+            return merge_star(id(node), [self.__convert_rec(child) for child in node.children])
 
 
 regex = "10*+01(01+1)*1(0(0+1)1)*+(0*1)*"
+regex2 = "1+0*"
 compiler = RegExp(regex)
-subexps, root = compiler.compile()
+subexps, root, nfa = compiler.compile()
 compiler.visualize()
