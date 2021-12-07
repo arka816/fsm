@@ -39,7 +39,8 @@ class ENFA:
             font_color='red'
         )
         plt.axis('off')
-        plt.show()
+        plt.title('ε-NFA')
+        plt.savefig('ε-NFA.png', format='png')
 
 
     def e_close(self, state):
@@ -56,6 +57,9 @@ class ENFA:
                     stack.append(transition[1])
 
         return [state for state in self.states if visited[state]]
+
+    def traverse(self, string):
+        pass
 
     def eliminate_e(self):
         # eliminate ε transitions and convert into a DFA

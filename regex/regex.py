@@ -1,5 +1,6 @@
 from treelib import Tree
 from automata import ENFA, merge_union, merge_concat, merge_star
+import sys
 
 # regex compiler
 # follows the original regular expression syntax
@@ -29,7 +30,7 @@ class ASTNode:
         if (self.type == 'literal' or self.type == 'nest') and self.val == None:
             raise Exception(f'need literal value for {self}')
         self.children = []
-        print(f'node of type {self.type} created')
+        # print(f'node of type {self.type} created')
 
     def add_children(self, children) ->None:
         if type(children) == list:
@@ -129,6 +130,7 @@ class RegExp:
 
         subexps = []
         subexp = ''
+        group_stack = []
 
         while i < length:
             c = exp[i]
@@ -206,14 +208,15 @@ class RegExp:
             for child in obj.children:
                 stack.append((child, obj))
 
+        print('Abstract Syntax Tree \n')
         tree.show()
         tree.save2file('ast.txt')
+        self.final_nfa.draw_automata()
 
     def convert(self):
         # convert ast to e-nfa
         self.final_nfa = self.__convert_rec(self.root)
         self.final_nfa.simplify_states()
-        # self.final_nfa.draw_automata()
 
     def __convert_rec(self, node):
         if node.type == 'literal':
@@ -236,8 +239,8 @@ class RegExp:
             return merge_star(id(node), [self.__convert_rec(child) for child in node.children])
 
 
-regex = "10*+01(01+1)*1(0(0+1)1)*+(0*1)*"
-regex2 = "1+0*"
-compiler = RegExp(regex)
-subexps, root, nfa = compiler.compile()
-compiler.visualize()
+if __name__ == "__main__":
+    regex = sys.argv[1]
+    compiler = RegExp(regex)
+    subexps, root, nfa = compiler.compile()
+    compiler.visualize()
