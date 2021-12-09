@@ -238,9 +238,20 @@ class RegExp:
         if node.type == 'star':
             return merge_star(id(node), [self.__convert_rec(child) for child in node.children])
 
+    def process(self, string):
+        # checks if a string complies with the grammar defined by the regex
+        return self.final_nfa.traverse(string)
+
 
 if __name__ == "__main__":
-    regex = sys.argv[1]
+    try:
+        regex = sys.argv[1]
+        string = sys.argv[2]
+    except:
+        raise Exception('not enough command line args. need at least a regex and a string to operate')
     compiler = RegExp(regex)
     subexps, root, nfa = compiler.compile()
-    compiler.visualize()
+    if len(sys.argv) > 3 and sys.argv[3] == '--visualize':
+        compiler.visualize()
+    flag = compiler.process(string)
+    print(flag, ':', 'string complies with regex' if flag else 'string does not comply with regex')

@@ -14,7 +14,7 @@ class ENFA:
     def simplify_states(self):
         # convert hashed state ids to integers for simplicity
         states = list(self.states)
-        transfer_matrix = {states[i] : i+1 for i in range(len(states))}
+        transfer_matrix = {states[i] : i for i in range(len(states))}
 
         self.states = set([transfer_matrix[state] for state in self.states])
         self.transitions = [(transfer_matrix[start], transfer_matrix[end], symbol) for start, end, symbol in self.transitions]
@@ -58,8 +58,40 @@ class ENFA:
 
         return [state for state in self.states if visited[state]]
 
+    def traverse_rec(self, state, string, visited):
+        if len(string) == 0:
+            if state == self.accepting_state:
+                return True
+        if visited[state][len(string)] == True:
+            return False
+        visited[state][len(string)] = True
+        flag = False
+        for child in range(len(self.states)):
+            symbol = self.adj_mat[state][child]
+            if symbol == None:
+                continue
+            elif symbol == 'ε':
+                flag = self.traverse_rec(child, string, visited)
+            else:
+                if len(string) > 0 and string[0] == symbol:
+                    flag = self.traverse_rec(child, string[1:], visited)
+                else:
+                    return False
+            if flag:
+                break
+        return flag
+        
+
     def traverse(self, string):
-        pass
+        # no point in traversing the same state twice
+        # with the same string
+        self.adj_mat = [[None for i in range(len(self.states))] for j in range(len(self.states))]
+        for start, end, symbol in self.transitions:
+            self.adj_mat[start][end] = symbol
+        visited = [[False for i in range(len(string) + 1)] for j in range(len(self.states))]
+        flag = self.traverse_rec(self.initial_state, string, visited)
+        return flag
+        
 
     def eliminate_e(self):
         # eliminate ε transitions and convert into a DFA
